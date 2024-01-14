@@ -1,0 +1,5 @@
+edit:
+  objects: ["car", "tree", "building", "sidewalk", "road"]
+  operations: "extraction" 
+  targets: "car" # the target object should be chosen from the object list
+  threshold: 0.24 # leave it empty if using argmax

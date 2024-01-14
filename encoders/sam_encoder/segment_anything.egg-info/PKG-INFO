@@ -1,0 +1,14 @@
+Metadata-Version: 2.1
+Name: segment-anything
+Version: 1.0
+Provides-Extra: all
+Requires-Dist: matplotlib; extra == "all"
+Requires-Dist: pycocotools; extra == "all"
+Requires-Dist: opencv-python; extra == "all"
+Requires-Dist: onnx; extra == "all"
+Requires-Dist: onnxruntime; extra == "all"
+Provides-Extra: dev
+Requires-Dist: flake8; extra == "dev"
+Requires-Dist: isort; extra == "dev"
+Requires-Dist: black; extra == "dev"
+Requires-Dist: mypy; extra == "dev"
