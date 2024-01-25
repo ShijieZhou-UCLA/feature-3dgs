@@ -254,6 +254,7 @@ You can customize `NUM_SEMANTIC_CHANNELS` in `submodules/diff-gaussian-rasteriza
 
 If you would like to use the optional CNN speed-up module, do the following accordingly:
 
+- Customize `NUMBER` in `semantic_feature_size/NUMBER` in `scene/gaussian_model.py` in line 142.
 - Customize `NUMBER` in `feature_out_dim/NUMBER` in `train.py` in line 51.
 - Customize `NUMBER` in `feature_out_dim/NUMBER` in `render.py` in line 116 and 246. 
 

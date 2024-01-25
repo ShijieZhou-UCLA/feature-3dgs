@@ -130,7 +130,7 @@ class GaussianModel:
         if self.active_sh_degree < self.max_sh_degree:
             self.active_sh_degree += 1
 
-    def create_from_pcd(self, pcd : BasicPointCloud, spatial_lr_scale : float, sematic_feature_size : int, speedup: bool):
+    def create_from_pcd(self, pcd : BasicPointCloud, spatial_lr_scale : float, semantic_feature_size : int, speedup: bool):
         self.spatial_lr_scale = spatial_lr_scale
         fused_point_cloud = torch.tensor(np.asarray(pcd.points)).float().cuda()
         fused_color = RGB2SH(torch.tensor(np.asarray(pcd.colors)).float().cuda())
@@ -139,8 +139,8 @@ class GaussianModel:
         features[:, 3:, 1:] = 0.0
         
         if speedup: # speed up for Segmentation
-            sematic_feature_size = int(sematic_feature_size/2)  # speed up for SAM
-        self._semantic_feature = torch.zeros(fused_point_cloud.shape[0], sematic_feature_size, 1).float().cuda() 
+            semantic_feature_size = int(semantic_feature_size/2)  # speed up for SAM
+        self._semantic_feature = torch.zeros(fused_point_cloud.shape[0], semantic_feature_size, 1).float().cuda() 
         print("Number of points at initialisation : ", fused_point_cloud.shape[0])
 
         dist2 = torch.clamp_min(distCUDA2(torch.from_numpy(np.asarray(pcd.points)).float().cuda()), 0.0000001)
