@@ -38,6 +38,11 @@ import sklearn
 import sklearn.decomposition
 import time
 import re
+
+# python3 -u smetric_dff.py --backbone clip_vitl16_384 --weights demo_e200.ckpt --widehead --no-scaleinv --student-feature-dir ../../output/office4_128_op_2_05/test/ours_5000/saved_feature/ --teacher-feature-dir ../../data/office4/rgb_feature_langseg/ --test-rgb-dir ../../output/office4_128_op_2_05/test/ours_5000/renders/ --workers 0 --eval-mode test --ground-truth ../../output/office4_128_op_2_05/test/ours_5000/saved_feature
+    
+    
+###
 import glob
 import encoding.datasets as enc_ds
 import torch.nn as nn
@@ -58,6 +63,10 @@ def calculate_accuracy(teacher, student):
 def calculate_accuracy_mask(gt, teacher, student, i):
     mask = np.equal(gt, teacher)
     mask = np.squeeze(mask)
+    # mask_save_path = rf"/usr/project/feature-3dgs-local/output/room/seg_results/mask_{i}.png"
+    # mask_image = Image.fromarray((mask * 255).astype(np.uint8))
+    # mask_image.save(mask_save_path)
+
     masked_student = np.where(mask, student, np.nan)
     correct_predictions = np.nansum(masked_student == gt)
     total_pixels = np.sum(mask)
@@ -100,7 +109,7 @@ def calculate_iou_mask(gt, teacher, student, num_classes):
 
 def make_encoder(
     backbone,
-    features=256, 
+    features=256, ###
     use_pretrained=True,
     groups=1,
     expand=False,
@@ -110,7 +119,7 @@ def make_encoder(
     use_readout="ignore",
     enable_attention_hooks=False,
 ):
-    if backbone == "fullclip_vitl14_384":
+    if backbone == "fullclip_vitl14_384": # full clip
         clip_pretrained, pretrained = _make_fullclip_vitl14_384(
             use_pretrained,
             hooks=hooks,
@@ -354,11 +363,11 @@ class Options:
             required=True,
         )
 
-        parser.add_argument(
-            "--ground-truth",
-            help="ground truyh label",
-            required=None,
-        )
+        # parser.add_argument(
+        #     "--ground-truth",
+        #     help="ground truyh label",
+        #     required=False,
+        # )
         self.parser = parser
 
     def parse(self):
@@ -371,24 +380,23 @@ adepallete = [0,0,0,120,120,120,180,120,120,6,230,230,80,50,50,4,200,3,120,120,8
 
 ###
 class FeatureImageFolderLoader(enc_ds.ADE20KSegmentation):#(torch.utils.data.Dataset):
-    def __init__(self, student_feature_root, teacher_feature_root, image_root, eval_mode, gt_label_root=None, transform=None):
+    def __init__(self, student_feature_root, teacher_feature_root, image_root, eval_mode, transform=None):
         self.transform = transform
         self.student_feature_root = student_feature_root
         self.teacher_feature_root = teacher_feature_root
-        self.gt_label_root = gt_label_root
+        # self.gt_label_root = gt_label_root
         self.image_root = image_root
-        self.gt_labels_path = None
 
         self.student_features = get_folder_features(student_feature_root)
         if eval_mode == 'test':
             self.teacher_features = get_gttest_folder_features(teacher_feature_root)
-            if gt_label_root != None:
-                self.gt_labels_path = get_gt_label_test(gt_label_root)
-
+            # self.gt_labels_path = get_gt_label_test(gt_label_root)
+            # print("!!!!!!!!!!!!!gt_labels_path!!!!!!!!!!!!!!", self.gt_labels_path)
+            # print("!!!!!!!!!!!!!teacher_features!!!!!!!!!!!!!!", self.teacher_features)
+            # print("!!!!!!!!!!!!!student_features!!!!!!!!!!!!!!", self.student_features)
         else:
             self.teacher_features = get_folder_features(teacher_feature_root)
-            if gt_label_root != None:
-                self.gt_labels_path = get_gt_label_train(gt_label_root)
+            # self.gt_labels_path = get_gt_label_train(gt_label_root)
         self.images = get_folder_images(image_root)
         if len(self.student_features) == 0:
             raise(RuntimeError("Found 0 prediction features in subfolders of: \
@@ -399,23 +407,22 @@ class FeatureImageFolderLoader(enc_ds.ADE20KSegmentation):#(torch.utils.data.Dat
         # self.num_class = 150  # ADE20k
 
     def __getitem__(self, index):
-        student_feature = torch.load(self.student_features[index]) 
+        student_feature = torch.load(self.student_features[index]) ### [0]
         teacher_feature = torch.load(self.teacher_features[index])
-        if self.gt_labels_path:
-            gt_label_path = self.gt_labels_path[index]
+        # gt_label_path = self.gt_labels_path[index]
 
-            with Image.open(gt_label_path) as img:
-                img = np.array(img)
-                gt_label = torch.from_numpy(img)
-                gt_label = gt_label.unsqueeze(0).unsqueeze(0)
-                gt_label = F.interpolate(gt_label, size=(student_feature.shape[1], student_feature.shape[2]), mode='nearest')
-                gt_label = gt_label.squeeze(0).squeeze(0)
-        else:
-            gt_label = None
+        # with Image.open(gt_label_path) as img:
+        #     img = np.array(img)
+        #     gt_label = torch.from_numpy(img)
+        #     gt_label = gt_label.unsqueeze(0).unsqueeze(0)
+        #     gt_label = F.interpolate(gt_label, size=(student_feature.shape[1], student_feature.shape[2]), mode='nearest')
+        #     gt_label = gt_label.squeeze(0).squeeze(0)
+        # print("????????????????????????????????? feaure: ", feature.shape)
         image = Image.open(self.images[index]).convert('RGB')
         if self.transform is not None:
             image = self.transform(image)
 
+        # return student_feature, teacher_feature, gt_label, image, os.path.basename(self.student_features[index])
         return student_feature, teacher_feature, image, os.path.basename(self.student_features[index])
 
     def __len__(self):
@@ -428,7 +435,7 @@ def get_gttest_folder_features(fea_folder):
         numbers = re.findall(r'\d+', filename)
         return [int(num) for num in numbers]  # returns a list of numbers for multi-level sorting
 
-    glist = glob.glob(fea_folder.rstrip("/") + '/*fmap_CxHxW.pt')
+    glist = glob.glob(fea_folder.rstrip("/") + '/rgb_*fmap_CxHxW.pt')
     sorted_list = sorted(glist, key=numerical_sort_key)
     
     # Select every 8th file from the sorted list
@@ -457,14 +464,20 @@ def get_gt_label_test(fea_folder):
 def get_gt_label_train(fea_folder):
     glist = list(glob.glob(fea_folder.rstrip("/") + '/0*.png'))
     return list(sorted(glist))
-
+###
 def get_folder_images(img_folder):
     glist = list(glob.glob(img_folder.rstrip("/") + '/*.png')) + list(glob.glob(img_folder.rstrip("/") + '/*.jpg'))
     return list(sorted(glist))
 
+###
+# def get_feature_image_dataset(student_feature_path, teacher_feature_path, gt_label_root, image_path, eval_mode, **kwargs):
+#     if os.path.isdir(student_feature_path) and os.path.isdir(teacher_feature_path) and os.path.isdir(image_path):
+#         return FeatureImageFolderLoader(student_feature_path, teacher_feature_path, gt_label_root, image_path, eval_mode, transform=kwargs["transform"])
+
 def get_feature_image_dataset(student_feature_path, teacher_feature_path, image_path, eval_mode, **kwargs):
     if os.path.isdir(student_feature_path) and os.path.isdir(teacher_feature_path) and os.path.isdir(image_path):
         return FeatureImageFolderLoader(student_feature_path, teacher_feature_path, image_path, eval_mode, transform=kwargs["transform"])
+
 
 def get_legend_patch(npimg, new_palette, labels):
     out_img = Image.fromarray(npimg.squeeze().astype('uint8'))
@@ -537,6 +550,7 @@ def test(args):
     model = model.eval()
     model = model.cpu()
 
+    # print(model)
 
     if args.export:
         torch.save(model.state_dict(), args.export + ".pth")
@@ -561,17 +575,31 @@ def test(args):
     """
 
     scales = [0.75, 1.0, 1.25, 1.75]
+    # print("scales", scales)
+    # print("outdir", args.outdir)
     evaluator = LSeg_MultiEvalModule(
         model, num_classes, scales=scales, flip=True
-        ).cuda()
+    ).cuda()
     evaluator.eval()
+    
+
     tbar = tqdm(test_data)
+
+    # outdir = args.outdir
+    # if not os.path.exists(outdir):
+    #     os.makedirs(outdir)
+    
     w, h = 480, 360
+
+
+    ###
+    ########################################################################################
     ################################## encode text feature #################################
     text = ''
     labelset = []
     if args.label_src != 'default':
         labelset = args.label_src.split(',')
+    # print("############################################################### labelset: ", labelset)
     if labelset == []:
         text = clip.tokenize(labels)
     else:
@@ -592,13 +620,17 @@ def test(args):
         use_readout="project",
         )
     
-    text = text.cuda() 
-    text_feature = clip_pretrained.encode_text(text) 
+    text = text.cuda() # text = text.to(x.device) # TODO: need use correct device
+    text_feature = clip_pretrained.encode_text(text) # torch.Size([150, 512])
+    #print("################################### text_feature: ", text_feature.shape)
     logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07)).exp()
+    # logit_scale = logit_scale.cuda() # logit_scale = logit_scale.to(x.device) # TODO: need use correct device
+
     ########################################################################################
     count = 0
     accuracy_accum = 0
     iou_accum = 0
+    # for i, (student_features, teacher_features, gt_label, images, dst) in enumerate(tbar):
     for i, (student_features, teacher_features, images, dst) in enumerate(tbar):
         
         """
@@ -614,6 +646,7 @@ def test(args):
             if images[0].shape[-1] > w:
                 print("resize", images[0].shape, "to", (h, w))
 
+                # print("?????????????????????????????????????????????? images[0]: ", images[0].shape) # torch.Size([3, 1440, 1920])
                 images = [
                     F.interpolate(
                         image[None],
@@ -624,6 +657,7 @@ def test(args):
                     )[0] for image in images]
                 
                 ###
+                #print("?????????????????????????????????????????????? features[0]: ", features[0].shape) # torch.Size([512, 1440, 1920])
                 student_features = [
                     F.interpolate(
                         student_feature.to(torch.float32)[None],
@@ -642,25 +676,30 @@ def test(args):
                         align_corners=True,
                     )[0] for teacher_feature in teacher_features]
             
-            
-            student_image_text_features = []
+            ###
+            pred_image_text_features = []
             for student_feature in student_features:
-                feashape = student_feature.shape 
-                image_feature = student_feature.permute(1, 2, 0).reshape(-1, feashape[0]) 
+                # student_feature = student_feature.permute(2, 0, 1)  ### do this only when evaluate 
+                feashape = student_feature.shape # (512, 360, 480)
+                print(feashape)
+                # feature = F.normalize(feature.float(), dim=0).half()
+                image_feature = student_feature.permute(1, 2, 0).reshape(-1, feashape[0]) # (172800, 512)
                 image_feature = image_feature / image_feature.norm(dim=-1, keepdim=True).to(torch.float32)
                 text_feature = text_feature / text_feature.norm(dim=-1, keepdim=True).to(torch.float32)
 
 
-                text_feature = text_feature.to(image_feature.device) 
+                text_feature = text_feature.to(image_feature.device) # (150, 512)
                 logit_scale = logit_scale.to(image_feature.device)
-                logits_per_image = image_feature @ text_feature.t() 
+                logits_per_image = image_feature @ text_feature.t() # torch.Size([172800, 150]) logit_scale
                 logits_per_image = logits_per_image.view(feashape[1], feashape[2], -1).permute(2, 0, 1)
-                pred_image_text_feature = logits_per_image[None] 
-                student_image_text_features.append(pred_image_text_feature)
+                # print("################################### logits_per_image: ", logits_per_image.shape) # torch.Size([150, 360, 480])
+                pred_image_text_feature = logits_per_image[None] # torch.Size([1, 150, 360, 480])
+                pred_image_text_features.append(pred_image_text_feature)
 
-            teacher_image_text_features = []
+            gt_image_text_features = []
             for teacher_feature in teacher_features:
-                feashape = teacher_feature.shape 
+                feashape = teacher_feature.shape # (512, 360, 480)
+                # feature = F.normalize(feature.float(), dim=0).half()
                 image_feature = teacher_feature.permute(1, 2, 0).reshape(-1, feashape[0]) # (172800, 512)
                 image_feature = image_feature / image_feature.norm(dim=-1, keepdim=True).to(torch.float32)
                 text_feature = text_feature / text_feature.norm(dim=-1, keepdim=True).to(torch.float32)
@@ -668,41 +707,87 @@ def test(args):
                 logit_scale = logit_scale.to(image_feature.device)
                 logits_per_image = image_feature @ text_feature.t() # torch.Size([172800, 150]) logit_scale
                 logits_per_image = logits_per_image.view(feashape[1], feashape[2], -1).permute(2, 0, 1)
+                # print("################################### logits_per_image: ", logits_per_image.shape) # torch.Size([150, 360, 480])
                 gt_image_text_feature = logits_per_image[None] # torch.Size([1, 150, 360, 480])
-                teacher_image_text_features.append(gt_image_text_feature)
+                gt_image_text_features.append(gt_image_text_feature)
 
-            teacher_predicts = [
+
+            # outputs = evaluator.parallel_forward(image)
+            print("start pred")
+            start = time.time()
+            # output_features = evaluator.parallel_forward(image, return_feature=True)
+            # print(output_features.shape, output_features.min(), output_features.max())
+            # print(type(outputs), type(output_features))
+            print("done pred", start - time.time())
+            # list
+            print("start make_pred")
+            start = time.time()
+
+            ###
+            # predicts = [
+            #     testset.make_pred(torch.max(feature, 1)[1].cpu().numpy())
+            #     for feature in features
+            # ]
+            pred_predicts = [
                 testset.make_pred(torch.max(pred_image_text_feature, 1)[1].cpu().numpy())
-                for pred_image_text_feature in student_image_text_features
+                for pred_image_text_feature in pred_image_text_features
             ]
         
-            student_predicts = [
+            gt_predicts = [
                 testset.make_pred(torch.max(gt_image_text_feature, 1)[1].cpu().numpy())
-                for gt_image_text_feature in teacher_image_text_features
+                for gt_image_text_feature in gt_image_text_features
             ]
 
+            print("done makepred", start - time.time())
+            # output_features = [o.cpu().numpy().astype(np.float16) for o in output_features]
         
-        for teacher_predict, student_predict, impathp in zip(teacher_predicts, student_predicts, dst):
+        
+        # for predict, impath in zip(predicts, dst):
+        # for predict, impath, img in zip(predicts, dst, image):
+        
+        for pred_predict, gt_predict, impathp in zip(pred_predicts, gt_predicts, dst):
             # prediction and visualize masks
-            pred_mask = utils.get_mask_pallete(teacher_predict - 1, 'detail')
-            gt_mask = utils.get_mask_pallete(student_predict - 1, 'detail')
+            pred_mask = utils.get_mask_pallete(pred_predict - 1, 'detail')
+            gt_mask = utils.get_mask_pallete(gt_predict - 1, 'detail')
             # Visualize accumulated predictions
             pred_mask = torch.tensor(np.array(pred_mask.convert("RGB"), "f")) / 255.0
             gt_mask = torch.tensor(np.array(gt_mask.convert("RGB"), "f")) / 255.0
-
+            # print("the pixel check", pred_mask[10][10], gt_mask[10][10], pred_predict[0][10][10], gt_predict[0][10][10])
+            # print("the pixel check", pred_mask[11][11], gt_mask[11][11], pred_predict[0][11][11], gt_predict[0][11][11])
+            # print("the pixel check", pred_mask[9][9], gt_mask[9][9], pred_predict[0][9][9], gt_predict[0][9][9])
+            # print("the pixel check", pred_mask[11][9], gt_mask[11][9], pred_predict[0][11][9], gt_predict[0][11][9])
+            # print("the pixel check", pred_mask[9][11], gt_mask[9][11], pred_predict[0][9][11], gt_predict[0][9][11])
 
 
             gt_mask = gt_mask.cpu().detach().numpy()
             pred_mask = pred_mask.cpu().detach().numpy()
+            # gt_label = gt_label[0].unsqueeze(0).numpy()
+            # dd = np.unique(gt_label)
+            gtplabel = np.unique(gt_predict)
+            predpred = np.unique(pred_predict)
+            # print(dd)
+            print(gtplabel)
+            print(predpred)
 
-            gtplabel = np.unique(student_predict)
-            predpred = np.unique(teacher_predict)
+            print(pred_predict.shape)
+            # print(gt_label.shape)
+            print(gt_predict.shape)
             ###################################### manually change labels here
+            print("Shape of pred_predict:", pred_predict.shape)
+            # for j in range(gt_label.shape[1]):
+            #     for k in range(gt_label.shape[2]):
+            #         for element in gt_label:
+            #             # bed sofa cushion pillow = bed
+            #             if element[j][k] == 90:  #TV to door
+            #                 element[j][k] = 15
+            #             if element[j][k] == 29:  #rug to floor
+            #                 element[j][k] = 4
+            #             if element[j][k] == 58:  #pillow to cushion
+            #                 element[j][k] = 40
 
-
-            for j in range(teacher_predict.shape[1]):
-                for k in range(teacher_predict.shape[2]):
-                    for element in (teacher_predict, student_predict):
+            for j in range(pred_predict.shape[1]):
+                for k in range(pred_predict.shape[2]):
+                    for element in (pred_predict, gt_predict):
                         # bed sofa cushion pillow = bed
                         if element[0][j][k] == 90:  #TV to door
                             element[0][j][k] = 15
@@ -715,25 +800,52 @@ def test(args):
             #             if element[0][j][k] == 29 or element[0][j][k] == 116 or element[0][j][k] == 5:
             #                 element[0][j][k] = 4
             ############## resize to the same size as NeRF
-            # student_predict = torch.from_numpy(student_predict).float()
-            # student_predict = F.interpolate(student_predict.unsqueeze(0), size=(119, 159), mode='nearest').squeeze(0)
-            # student_predict = student_predict.long().numpy()  # Convert back to numpy array
+            gt_predict = torch.from_numpy(gt_predict).float()
+            gt_predict = F.interpolate(gt_predict.unsqueeze(0), size=(119, 159), mode='nearest').squeeze(0)
+            gt_predict = gt_predict.long().numpy()  # Convert back to numpy array
 
-            # teacher_predict = torch.from_numpy(teacher_predict).float()
-            # teacher_predict = F.interpolate(teacher_predict.unsqueeze(0), size=(119, 159), mode='nearest').squeeze(0)
-            # teacher_predict = teacher_predict.long().numpy()  # Convert back to numpy array
+            pred_predict = torch.from_numpy(pred_predict).float()
+            pred_predict = F.interpolate(pred_predict.unsqueeze(0), size=(119, 159), mode='nearest').squeeze(0)
+            pred_predict = pred_predict.long().numpy()  # Convert back to numpy array
 
-
-            accuracy = calculate_accuracy(student_predict, teacher_predict)
-            # accuracy_mask = calculate_accuracy_mask(gt_label, student_predict, teacher_predict, i)
-            iou = calculate_iou(student_predict, teacher_predict, 7)
-            # iou_mask = calculate_iou_mask(gt_label, student_predict, teacher_predict, 7)
+            # gt_label = torch.from_numpy(gt_label).float()
+            # gt_label = F.interpolate(gt_label.unsqueeze(0), size=(119, 159), mode='nearest').squeeze(0)
+            # gt_label = gt_label.long().numpy()  # Convert back to numpy array
 
 
+
+
+            accuracy = calculate_accuracy(gt_predict, pred_predict)
+            # accuracy_mask = calculate_accuracy_mask(gt_label, gt_predict, pred_predict, i)
+            iou = calculate_iou(gt_predict, pred_predict, 7)
+            # iou_mask = calculate_iou_mask(gt_label, gt_predict, pred_predict, 7)
+
+            print("teacher", gt_predict)
+            print(gt_predict.shape)
+            print("student", pred_predict)
+            # print("gt", gt_label)
             accuracy_accum += accuracy
             iou_accum += iou
+            # print(f"for the {i}th image, the accuracy is {accuracy}, accuracy with mask is {accuracy_mask}, iou is {iou}, iou with mask is{iou_mask}")
             print(f"for the {i}th image, the accuracy is {accuracy}, iou is {iou}")
+
             print(f'the average accuracy is {accuracy_accum/count}, average iou is {iou_accum/count}')
+            # print("?????????????????????????????????????????????????????????????????????", mask_pred.shape)   #tensors([360, 480, 3])
+
+
+            # # # Visualize results with legend
+            # seg, patches = get_legend_patch(pred_predict - 1, adepallete, labels)
+            # seg = seg.convert("RGBA")
+            # plt.figure()
+            # plt.axis('off')
+            # plt.imshow(seg)
+            # #plt.legend(handles=patches)
+            # outdir = '../../office4student'
+            # outname = f"famp{count}"
+            # plt.legend(handles=patches, prop={'size': 8}, ncol=4)
+            # plt.savefig(os.path.join(outdir, outname + "_legend.png"), format="png", dpi=300, bbox_inches="tight")
+            # plt.clf()
+            # plt.close()
  
 
 def normalize_and_save_images(src_directory, dst_directory_1, dst_directory_2):
@@ -750,6 +862,7 @@ def normalize_and_save_images(src_directory, dst_directory_1, dst_directory_2):
 
             save_path_1 = os.path.join(dst_directory_1, base_name)
             save_path_2 = os.path.join(dst_directory_2, base_name)
+            print("hello??")
             normalized_img.save(save_path_1)
             normalized_img_resize.save(save_path_2)
 
@@ -769,5 +882,11 @@ if __name__ == "__main__":
     args = Options().parse()
     torch.manual_seed(args.seed)
     args.test_batch_size = torch.cuda.device_count()
+
+    # src_dir = args.ground_truth
+    # print(src_dir)
+    dst_dir1 = '../../data/room/label_rgb_gt'
+    dst_dir2 = '../../data/room/label_rgb_resize'
+    # normalize_and_save_images(src_dir, dst_dir1, dst_dir2)
 
     test(args)
