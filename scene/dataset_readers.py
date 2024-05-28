@@ -92,7 +92,8 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder, semantic_fe
             focal_length_x = intr.params[0]
             FovY = focal2fov(focal_length_x, height)
             FovX = focal2fov(focal_length_x, width)
-        elif intr.model=="PINHOLE":
+        ### elif intr.model=="PINHOLE":
+        elif intr.model=="PINHOLE" or intr.model=="OPENCV":
             focal_length_x = intr.params[0]
             focal_length_y = intr.params[1]
             FovY = focal2fov(focal_length_y, height)
@@ -103,7 +104,7 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder, semantic_fe
 
         image_path = os.path.join(images_folder, os.path.basename(extr.name))
         image_name = os.path.basename(image_path).split(".")[0]
-        image = Image.open(image_path) #(1908, 1423)
+        image = Image.open(image_path) 
 
         
         semantic_feature_path = os.path.join(semantic_feature_folder, image_name) + '_fmap_CxHxW.pt' 
@@ -165,11 +166,16 @@ def readColmapSceneInfo(path, foundation_model, images, eval, llffhold=8):
     cam_infos_unsorted = readColmapCameras(cam_extrinsics=cam_extrinsics, cam_intrinsics=cam_intrinsics, 
                                            images_folder=os.path.join(path, reading_dir), semantic_feature_folder=os.path.join(path, semantic_feature_dir))
     cam_infos = sorted(cam_infos_unsorted.copy(), key = lambda x : x.image_name)
+    ###cam_infos = sorted(cam_infos_unsorted.copy(), key = lambda x : int(x.image_name.split('.')[0])) ### if img name is number
+    # cam_infos =cam_infos[:30] ###: for scannet only
+    # print(cam_infos)
     semantic_feature_dim = cam_infos[0].semantic_feature.shape[0]
 
     if eval:
         train_cam_infos = [c for idx, c in enumerate(cam_infos) if idx % llffhold != 2] # avoid 1st to be test view
         test_cam_infos = [c for idx, c in enumerate(cam_infos) if idx % llffhold == 2] 
+        # for i, item in enumerate(test_cam_infos): ### check test set
+        #     print('test image:', item[7])
     else:
         train_cam_infos = cam_infos
         test_cam_infos = []

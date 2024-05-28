@@ -181,7 +181,7 @@ python train.py -s data/DATASET_NAME -m output/OUTPUT_NAME -f lseg -r 0 --speedu
   #### --eval
   Add this flag to use a MipNeRF360-style training/test split for evaluation.
   #### --resolution / -r
-  Specifies resolution of the loaded images before training. If provided ```1, 2, 4``` or ```8```, uses original, 1/2, 1/4 or 1/8 resolution, respectively. If proveided ```0```, use GT feature map's resolution. For all other values, rescales the width to the given number while maintaining image aspect. If proveided ```-2```, use the customized resolution. **If not set and input image width exceeds 1.6K pixels, inputs are automatically rescaled to this target.**
+  Specifies resolution of the loaded images before training. If provided ```1, 2, 4``` or ```8```, uses original, 1/2, 1/4 or 1/8 resolution, respectively. If proveided ```0```, use GT feature map's resolution. For all other values, rescales the width to the given number while maintaining image aspect. If proveided ```-2```, use the customized resolution (```utils/camera_utils.py L31```). **If not set and input image width exceeds 1.6K pixels, inputs are automatically rescaled to this target.**
   #### --speedup
   Optional speed-up module for reduced feature dimention initialization.
   #### --data_device

@@ -84,6 +84,8 @@ def render_edit(viewpoint_camera, pc : GaussianModel, pipe, bg_color : torch.Ten
         sh_degree=pc.active_sh_degree,
         campos=viewpoint_camera.camera_center,
         prefiltered=False,
+        beta=0.0, ###d
+        ret_pts=False, ###d
         debug=pipe.debug
     )
 
@@ -198,6 +200,8 @@ def render(viewpoint_camera, pc : GaussianModel, pipe, bg_color : torch.Tensor, 
         sh_degree=pc.active_sh_degree,
         campos=viewpoint_camera.camera_center,
         prefiltered=False,
+        beta=0.0, ###d
+        ret_pts=False, ###d
         debug=pipe.debug
     )
 
@@ -236,9 +240,10 @@ def render(viewpoint_camera, pc : GaussianModel, pipe, bg_color : torch.Tensor, 
     else:
         colors_precomp = override_color
     semantic_feature = pc.get_semantic_feature
+    var_loss = torch.zeros(1,viewpoint_camera.image_height,viewpoint_camera.image_width) ###d
 
     # Rasterize visible Gaussians to image, obtain their radii (on screen). 
-    rendered_image, feature_map, radii = rasterizer(
+    rendered_image, feature_map, radii, depth, number, accum_alpha, mode_id, modes, point_list, means2D_new, conic_opacity = rasterizer(
         means3D = means3D,
         means2D = means2D,
         shs = shs,
@@ -247,7 +252,8 @@ def render(viewpoint_camera, pc : GaussianModel, pipe, bg_color : torch.Tensor, 
         opacities = opacity,
         scales = scales,
         rotations = rotations,
-        cov3D_precomp = cov3D_precomp)
+        cov3D_precomp = cov3D_precomp,
+        var_loss = var_loss)
 
     # Those Gaussians that were frustum culled or had a radius of 0 were not visible.
     # They will be excluded from value updates used in the splitting criteria.
@@ -255,5 +261,6 @@ def render(viewpoint_camera, pc : GaussianModel, pipe, bg_color : torch.Tensor, 
             "viewspace_points": screenspace_points,
             "visibility_filter" : radii > 0,
             "radii": radii,
-            'feature_map': feature_map}
+            'feature_map': feature_map,
+            "depth": depth} ###d
 

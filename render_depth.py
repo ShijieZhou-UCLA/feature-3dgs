@@ -109,6 +109,7 @@ def render_set(model_path, name, iteration, views, gaussians, pipeline, backgrou
         saved_feature_path = os.path.join(model_path, name, "ours_{}".format(iteration), "saved_feature")
         #encoder_ckpt_path = os.path.join(model_path, "encoder_chkpnt{}.pth".format(iteration))
         decoder_ckpt_path = os.path.join(model_path, "decoder_chkpnt{}.pth".format(iteration))
+        depth_path = os.path.join(model_path, name, "ours_{}".format(iteration), "depth") ###
         
         if speedup:
             gt_feature_map = views[0].semantic_feature.cuda()
@@ -122,6 +123,7 @@ def render_set(model_path, name, iteration, views, gaussians, pipeline, backgrou
         makedirs(feature_map_path, exist_ok=True)
         makedirs(gt_feature_map_path, exist_ok=True)
         makedirs(saved_feature_path, exist_ok=True)
+        makedirs(depth_path, exist_ok=True) ###
 
     for idx, view in enumerate(tqdm(views, desc="Rendering progress")):
         if edit_config != "no editing":
@@ -148,6 +150,20 @@ def render_set(model_path, name, iteration, views, gaussians, pipeline, backgrou
             gt_feature_map = view.semantic_feature.cuda() 
             torchvision.utils.save_image(render_pkg["render"], os.path.join(render_path, '{0:05d}'.format(idx) + ".png")) 
             torchvision.utils.save_image(gt, os.path.join(gts_path, '{0:05d}'.format(idx) + ".png"))
+            
+            ### depth ###
+            depth = render_pkg["depth"]
+            scale_nor = depth.max().item()
+            depth_nor = depth / scale_nor
+            depth_tensor_squeezed = depth_nor.squeeze()  # Remove the channel dimension
+            colormap = plt.get_cmap('jet')
+            depth_colored = colormap(depth_tensor_squeezed.cpu().numpy())
+            depth_colored_rgb = depth_colored[:, :, :3]
+            depth_image = Image.fromarray((depth_colored_rgb * 255).astype(np.uint8))
+            output_path = os.path.join(depth_path, '{0:05d}'.format(idx) + ".png")
+            depth_image.save(output_path)
+            ##############
+
             # visualize feature map
             feature_map = render_pkg["feature_map"] 
             feature_map = F.interpolate(feature_map.unsqueeze(0), size=(gt_feature_map.shape[1], gt_feature_map.shape[2]), mode='bilinear', align_corners=True).squeeze(0) ###
