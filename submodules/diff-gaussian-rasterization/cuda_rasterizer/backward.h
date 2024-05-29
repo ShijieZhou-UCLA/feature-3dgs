@@ -33,8 +33,6 @@ namespace BACKWARD
 		const float* depths, 
 		const float* final_Ts,
 		const uint32_t* n_contrib,
-		const int* num_gauss,
-		const float* avg_depth,
 		const float* dL_dpixels,
 		const float* dL_dfeaturepixels,
 		const float* dL_depths,
@@ -44,8 +42,6 @@ namespace BACKWARD
 		float* dL_dcolors,
 		float* dL_dsemantic_feature,
 		float* dL_dz,
-		float* vars,
-		float beta_k, 
 		float* collected_semantic_feature 
 		);
 

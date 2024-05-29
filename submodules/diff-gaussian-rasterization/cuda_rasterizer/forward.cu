@@ -274,11 +274,7 @@ renderCUDA(
 	const float* __restrict__ bg_color,
 	float* __restrict__ out_color,
 	float* __restrict__ out_feature_map,
-	float* __restrict__ out_depth,
-	int* __restrict__ num_gauss,
-	int* __restrict__ mode_id,
-	float* __restrict__ modes,
-	float beta_k) 
+	float* __restrict__ out_depth) 
 {
 	// Identify current tile and associated min/max pixel range.
 	auto block = cg::this_thread_block();
@@ -312,11 +308,6 @@ renderCUDA(
 	float C[CHANNELS] = { 0 };
 	float SF[NUM_SEMANTIC_CHANNELS] = { 0 };
 	float D = { 0 };
-	int _num_gauss = 0;
-	float topW = 0;
-	int endIdx = -1;
-	int startIdx = -1;
-	float topD = 0;
 
 	// Iterate over batches until all done or range is complete
 	for (int i = 0; i < rounds; i++, toDo -= BLOCK_SIZE)
@@ -371,24 +362,16 @@ renderCUDA(
 			for (int ch = 0; ch < CHANNELS; ch++){
 				C[ch] += features[collected_id[j] * CHANNELS + ch] * alpha * T;
 			}
+
 			float depp = depths[collected_id[j]];
 			float w = alpha*T;
 			D += depp*w;
-
-			if(startIdx == -1)
-				startIdx = range.x + progress;
-			
-			if (w > topW)
-				topW = w;
-				endIdx = range.x + progress;
-				topD = depp;
 			
 			for (int ch = 0; ch < NUM_SEMANTIC_CHANNELS; ch++){
 				SF[ch] += semantics[collected_id[j] * NUM_SEMANTIC_CHANNELS + ch] * alpha * T; 
 			}
 
 			T = test_T;
-			_num_gauss++;
 			// Keep track of last range entry to update this
 			// pixel.
 			last_contributor = contributor;
@@ -406,10 +389,6 @@ renderCUDA(
 			out_color[ch * H * W + pix_id] = C[ch] + T * bg_color[ch];
 		// depth
 		out_depth[pix_id] = D;
-		num_gauss[pix_id] = _num_gauss;
-		mode_id[pix_id] = startIdx;
-		mode_id[H*W + pix_id] = endIdx;
-		modes[pix_id] = topD;
 		// feature
 		for (int ch = 0; ch < NUM_SEMANTIC_CHANNELS; ch++)                 
 			out_feature_map[ch * H * W + pix_id] = SF[ch] + T * bg_color[ch];
@@ -431,11 +410,7 @@ void FORWARD::render(
 	const float* bg_color,
 	float* out_color,
 	float* out_feature_map,
-	float* out_depth,
-	int* num_gauss,
-	int* mode_id,
-	float* modes,
-	const float beta_k) 
+	float* out_depth) 
 {
 	renderCUDA<NUM_CHANNELS> << <grid, block >> > (
 		ranges,
@@ -451,11 +426,7 @@ void FORWARD::render(
 		bg_color,
 		out_color,
 		out_feature_map,
-		out_depth,
-		num_gauss,
-		mode_id,
-		modes,
-		beta_k);
+		out_depth);
 }
 
 void FORWARD::preprocess(int P, int D, int M,

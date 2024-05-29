@@ -418,8 +418,6 @@ renderCUDA(
 	const float* __restrict__ depths,
 	const float* __restrict__ final_Ts,
 	const uint32_t* __restrict__ n_contrib,
-	const int* __restrict__ num_gauss,
-	const float* __restrict__ avg_depth,
 	const float* __restrict__ dL_dpixels,
 	const float* __restrict__ dL_dfeaturepixels,
 	const float* __restrict__ dL_depths, 
@@ -429,8 +427,6 @@ renderCUDA(
 	float* __restrict__ dL_dcolors,
 	float* __restrict__ dL_dsemantic_feature,
 	float* __restrict__ dL_dz,
-	float* __restrict__ vars,
-	float beta_k, 
 	float* collected_semantic_feature) 
 {
 	// We rasterize again. Compute necessary block info.
@@ -461,7 +457,6 @@ renderCUDA(
 	// product of all (1 - alpha) factors. 
 	const float T_final = inside ? final_Ts[pix_id] : 0;
 	float T = T_final;
-	float _num_gauss = (float) num_gauss[pix_id];
 
 	// We start from the back. The ID of the last contributing
 	// Gaussian is known from each pixel from the forward.
@@ -474,14 +469,12 @@ renderCUDA(
 	float dL_dpixel[C];
 	float dL_dfeaturepixel[NUM_SEMANTIC_CHANNELS];
 	float dL_depth;
-	float a_d;
-	float V = 0;
-	float accum_depth_rec = 0; 
+	float accum_depth_rec = 0;
+
 
 	if (inside)
 		for (int i = 0; i < C; i++)
 			dL_dpixel[i] = dL_dpixels[i * H * W + pix_id];
-			a_d = avg_depth[pix_id];
 			dL_depth = dL_depths[pix_id];
 		for (int i = 0; i < NUM_SEMANTIC_CHANNELS; i++) 
 			dL_dfeaturepixel[i] = dL_dfeaturepixels[i * H * W + pix_id];
@@ -590,12 +583,7 @@ renderCUDA(
 			dL_dalpha *= T;
 			// Update last alpha (to be used in the next iteration)
 			last_alpha = alpha;
-			float dldz = 0;
-			float res =  a_d - c_d; 
 
-			if(res < 0)
-				res = 0;
-			V += res;
 
 			// Account for fact that alpha also influences how much of
 			// the background color is added if nothing left to blend
@@ -626,11 +614,8 @@ renderCUDA(
 			atomicAdd(&(dL_dz[global_id]),  alpha * T * dL_depth);
 		}
 	}
-
-	if(inside){
-		vars[pix_id] = V;
-	}
 }
+
 
 void BACKWARD::preprocess(
 	int P, int D, int M,
@@ -713,8 +698,6 @@ void BACKWARD::render(
 	const float* depths, 
 	const float* final_Ts,
 	const uint32_t* n_contrib,
-	const int* num_gauss,
-	const float* avg_depth,
 	const float* dL_dpixels,
 	const float* dL_dfeaturepixels,
 	const float* dL_depths, 
@@ -724,8 +707,6 @@ void BACKWARD::render(
 	float* dL_dcolors,
 	float* dL_dsemantic_feature,
 	float* dL_dz,
-	float* vars,
-	float beta_k,
 	float* collected_semantic_feature) 
 	
 {
@@ -741,8 +722,6 @@ void BACKWARD::render(
 		depths, 
 		final_Ts,
 		n_contrib,
-		num_gauss,
-		avg_depth,
 		dL_dpixels,
 		dL_dfeaturepixels,
 		dL_depths, 
@@ -752,8 +731,6 @@ void BACKWARD::render(
 		dL_dcolors,
 		dL_dsemantic_feature,
 		dL_dz,
-		vars,
-		beta_k, 
 		collected_semantic_feature 
 		);
 }

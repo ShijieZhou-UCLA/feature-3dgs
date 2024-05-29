@@ -105,6 +105,7 @@ def render_set(model_path, name, iteration, views, gaussians, pipeline, backgrou
         render_path = os.path.join(model_path, name, "ours_{}".format(iteration), "renders")
         gts_path = os.path.join(model_path, name, "ours_{}".format(iteration), "gt")
         feature_map_path = os.path.join(model_path, name, "ours_{}".format(iteration), "feature_map")
+        depth_path = os.path.join(model_path, name, "ours_{}".format(iteration), "depth")
         gt_feature_map_path = os.path.join(model_path, name, "ours_{}".format(iteration), "gt_feature_map")
         saved_feature_path = os.path.join(model_path, name, "ours_{}".format(iteration), "saved_feature")
         #encoder_ckpt_path = os.path.join(model_path, "encoder_chkpnt{}.pth".format(iteration))
@@ -120,6 +121,7 @@ def render_set(model_path, name, iteration, views, gaussians, pipeline, backgrou
         makedirs(render_path, exist_ok=True)
         makedirs(gts_path, exist_ok=True)
         makedirs(feature_map_path, exist_ok=True)
+        makedirs(depth_path, exist_ok=True)
         makedirs(gt_feature_map_path, exist_ok=True)
         makedirs(saved_feature_path, exist_ok=True)
 
@@ -148,6 +150,8 @@ def render_set(model_path, name, iteration, views, gaussians, pipeline, backgrou
             gt_feature_map = view.semantic_feature.cuda() 
             torchvision.utils.save_image(render_pkg["render"], os.path.join(render_path, '{0:05d}'.format(idx) + ".png")) 
             torchvision.utils.save_image(gt, os.path.join(gts_path, '{0:05d}'.format(idx) + ".png"))
+            torchvision.utils.save_image(render_pkg["depth"], os.path.join(depth_path, '{0:05d}'.format(idx) + ".png")) 
+
             # visualize feature map
             feature_map = render_pkg["feature_map"] 
             feature_map = F.interpolate(feature_map.unsqueeze(0), size=(gt_feature_map.shape[1], gt_feature_map.shape[2]), mode='bilinear', align_corners=True).squeeze(0) ###

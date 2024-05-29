@@ -219,16 +219,7 @@ int CudaRasterizer::Rasterizer::forward(
 	float* out_color,
 	float* out_feature_map,
 	float* out_depth,
-	int* point_list,
-	float* out_means2D,
-	float* out_conic_opacity,
-	int* num_gauss,
-	int* mode_id,
-	float* modes,
-	float* accum_alpha,
-	bool ret_pts,
 	int* radii,
-	float beta_k,
 	bool debug)
 {
 	const float focal_y = height / (2.0f * tan_fovy);
@@ -345,18 +336,7 @@ int CudaRasterizer::Rasterizer::forward(
 		background,
 		out_color,
 		out_feature_map,
-		out_depth,
-		num_gauss,
-		mode_id,
-		modes, 
-		beta_k), debug)
-	cudaMemcpy(accum_alpha, imgState.accum_alpha, width * height * sizeof(float), cudaMemcpyDeviceToDevice);
-	
-	if(ret_pts){
-		cudaMemcpy(point_list, binningState.point_list, num_rendered * sizeof(int), cudaMemcpyDeviceToDevice);
-		cudaMemcpy(out_means2D, geomState.means2D, P * sizeof(float2), cudaMemcpyDeviceToDevice);
-		cudaMemcpy(out_conic_opacity, geomState.conic_opacity, P * sizeof(float4), cudaMemcpyDeviceToDevice);
-	}
+		out_depth), debug)
 
 	return num_rendered;
 }
@@ -387,8 +367,6 @@ void CudaRasterizer::Rasterizer::backward(
 	const float* dL_dpix,
 	const float* dL_dfeaturepix,
 	const float* dL_depths,
-	const int* num_gauss,
-	const float* avg_depth,
 	float* dL_dmean2D,
 	float* dL_dconic,
 	float* dL_dopacity,
@@ -400,8 +378,6 @@ void CudaRasterizer::Rasterizer::backward(
 	float* dL_dscale,
 	float* dL_drot,
 	float* dL_dz,
-	float* vars,
-	const float beta_k,
 	bool debug)
 {
 	GeometryState geomState = GeometryState::fromChunk(geom_buffer, P);
@@ -440,8 +416,6 @@ void CudaRasterizer::Rasterizer::backward(
 		depth_ptr, 
 		imgState.accum_alpha,
 		imgState.n_contrib,
-		num_gauss,
-		avg_depth,
 		dL_dpix,
 		dL_dfeaturepix,
 		dL_depths,
@@ -451,8 +425,6 @@ void CudaRasterizer::Rasterizer::backward(
 		dL_dcolor,
 		dL_dsemantic_feature,
 		dL_dz,
-		vars, 
-		beta_k, 
 		collected_semantic_feature
 		), debug) 
 		cudaFree(collected_semantic_feature);

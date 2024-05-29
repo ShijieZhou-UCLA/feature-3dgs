@@ -52,16 +52,7 @@ namespace CudaRasterizer
 			float* out_color,
 			float* out_feature_map,
 			float* out_depth,
-			int* point_list,
-			float* out_means2D,
-			float* out_conic_opacity,
-			int* num_gauss,
-			int* mode_id,
-			float* modes,
-			float* accum_alpha,
-			bool ret_pts=false,
 			int* radii = nullptr,
-			float beta_k = 0.0f,
 			bool debug = false
 			);
 
@@ -88,8 +79,6 @@ namespace CudaRasterizer
 			const float* dL_dpix,
 			const float* dL_dfeaturepix,
 			const float* dL_depths,
-			const int* num_gauss,
-			const float* avg_depth,
 			float* dL_dmean2D,
 			float* dL_dconic,
 			float* dL_dopacity,
@@ -101,8 +90,6 @@ namespace CudaRasterizer
 			float* dL_dscale,
 			float* dL_drot,
 			float* dL_dz,
-			float* vars,
-			float beta_k,
 			bool debug);
 	};
 };
