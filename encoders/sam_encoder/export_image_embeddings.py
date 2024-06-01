@@ -67,7 +67,7 @@ def main(args: argparse.Namespace) -> None:
 
     for t in targets:
         print(f"Processing '{t}'...")
-        img_name = t.split("/")[-1].split(".")[0]
+        img_name = t.split(os.sep)[-1].split(".")[0]
         image = cv2.imread(t) # (1423, 1908, 3)
         if image is None:
             print(f"Could not load '{t}' as an image, skipping...")
