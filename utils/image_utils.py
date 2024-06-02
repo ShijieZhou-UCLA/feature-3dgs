@@ -24,6 +24,8 @@ def psnr(img1, img2):
     return 20 * torch.log10(1.0 / torch.sqrt(mse))
 
 def feature_map(feature):
+    global pca_mean
+    global top_voctor
     fmap = feature[None, :, :, :]  # torch.Size([1, 512, h, w])
     fmap = nn.functional.normalize(fmap, dim=1)
 
@@ -31,12 +33,16 @@ def feature_map(feature):
     f_samples = fmap.permute(0, 2, 3, 1).reshape(-1, fmap.shape[1])[::3]
 
     # Perform PCA using torch
-    mean = f_samples.mean(dim=0, keepdim=True)
+    if pca_mean is None:
+        pca_mean = f_samples.mean(dim=0, keepdim=True)
+    mean = pca_mean
     f_samples_centered = f_samples - mean
     covariance_matrix = f_samples_centered.T @ f_samples_centered / (f_samples_centered.shape[0] - 1)
 
     eig_values, eig_vectors = torch.linalg.eigh(covariance_matrix)
-    top_eig_vectors = eig_vectors[:, -3:]
+    if top_voctor is None:
+        top_voctor = eig_vectors[:, -3:]
+    top_eig_vectors = top_voctor
 
     transformed = f_samples_centered @ top_eig_vectors
 
