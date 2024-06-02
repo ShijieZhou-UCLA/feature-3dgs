@@ -56,7 +56,7 @@ class ModelParams(ParamGroup):
         self.data_device = "cuda"
         self.eval = False
         self.speedup = False ###
-        self.render_items = ['RGB', 'Depth', 'Edge', 'Normal', 'Feature Map']
+        self.render_items = ['RGB', 'Depth', 'Edge', 'Normal', 'Curvature', 'Feature Map']
         super().__init__(parser, "Loading Parameters", sentinel)
 
     def extract(self, args):

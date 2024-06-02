@@ -15,7 +15,8 @@ import torch.nn.functional as F
 import torch.nn as nn
 import sklearn.decomposition
 import numpy as np
-
+pca_mean = None
+top_vector = None
 def mse(img1, img2):
     return (((img1 - img2)) ** 2).view(img1.shape[0], -1).mean(1, keepdim=True)
 
@@ -25,7 +26,7 @@ def psnr(img1, img2):
 
 def feature_map(feature):
     global pca_mean
-    global top_voctor
+    global top_vector
     fmap = feature[None, :, :, :]  # torch.Size([1, 512, h, w])
     fmap = nn.functional.normalize(fmap, dim=1)
 
@@ -40,9 +41,9 @@ def feature_map(feature):
     covariance_matrix = f_samples_centered.T @ f_samples_centered / (f_samples_centered.shape[0] - 1)
 
     eig_values, eig_vectors = torch.linalg.eigh(covariance_matrix)
-    if top_voctor is None:
-        top_voctor = eig_vectors[:, -3:]
-    top_eig_vectors = top_voctor
+    if top_vector is None:
+        top_vector = eig_vectors[:, -3:]
+    top_eig_vectors = top_vector
 
     transformed = f_samples_centered @ top_eig_vectors
 
@@ -146,6 +147,10 @@ def render_net_image(render_pkg, render_items, render_mode, camera):
     elif output == 'normal':
         net_image = depth_to_normal(render_pkg["depth"], camera).permute(2,0,1)
         net_image = (net_image+1)/2
+    elif output == 'curvature':
+        net_image = depth_to_normal(render_pkg["depth"], camera).permute(2,0,1)
+        net_image = (net_image+1)/2
+        net_image = gradient_map(net_image)
     elif output == 'feature map':
         net_image = feature_map(render_pkg['feature_map'])
     else:
