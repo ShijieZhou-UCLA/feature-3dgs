@@ -2,7 +2,7 @@
 
 
 Shijie Zhou, Haoran Chang*, Sicheng Jiang*, Zhiwen Fan, Zehao Zhu, Dejia Xu, Pradyumna Chari, Suya You, Zhangyang Wang, Achuta Kadambi (* indicates equal contribution)<br>
-| [Webpage](https://feature-3dgs.github.io/) | [Full Paper](https://arxiv.org/abs/2312.03203) | [Video](https://www.youtube.com/watch?v=h4zmQsCV_Qw) |<br>
+| [Webpage](https://feature-3dgs.github.io/) | [Full Paper](https://arxiv.org/abs/2312.03203) | [Video](https://www.youtube.com/watch?v=h4zmQsCV_Qw) | [Viewer Pre-built for Windows](https://drive.google.com/file/d/1DRFrtFUfz27QvQKOWbYXbRS2o2eSgaUT/view?usp=sharing)<br>
 ![Teaser image](assets/teaser_v5_2.png) 
 
 <!-- <a href="https://www.inria.fr/"><img height="100" src="assets/logo_inria.png"> </a>
@@ -25,12 +25,14 @@ Abstract: *3D scene representations have gained immense popularity in recent yea
 </section>
 
 
+
 # Environment setup
 Our default, provided install method is based on Conda package and environment management:
 ```
 conda env create --file environment.yml
 conda activate feature_3dgs
 ```
+
 
 # Processing your own Scenes
 
@@ -169,6 +171,23 @@ python export_image_embeddings.py --checkpoint checkpoints/sam_vit_h_4b8939.pth 
 
 # Training, Rendering, and Inference: 
 
+## Interactive Viewer
+The Pre-built Viewer for Windows can be found [here](https://drive.google.com/file/d/1DRFrtFUfz27QvQKOWbYXbRS2o2eSgaUT/view?usp=sharing). If you use Ubuntu or you want to check the viewer usage, please refer to [GS Monitor](https://github.com/RongLiu-Leo/Gaussian-Splatting-Monitor).
+
+
+https://github.com/RongLiu-Leo/feature-3dgs/assets/102014841/7baf236f-29bc-4de1-9a99-97d528f6e63e
+### How to use
+Firstly open the viewer, 
+```shell
+<path to downloaded/compiled viewer>/bin/SIBR_remoteGaussian_app_rwdi
+```
+and then
+```shell
+# Monitor the training process
+python train.py -s <path to COLMAP or NeRF Synthetic dataset> -f <sam/lseg>
+# View the trained model
+python view.py -s <path to COLMAP or NeRF Synthetic dataset> -m <path to trained model> -f <sam/lseg>
+```
 ## Train
 ```
 python train.py -s data/DATASET_NAME -m output/OUTPUT_NAME -f lseg -r 0 --speedup --iterations 7000
@@ -285,6 +304,25 @@ Make sure to compile everytime after modifying any CUDA code
 cd submodules/diff-gaussian-rasterization
 pip install .
 ```
+
+## View the Trained Model
+```shell
+python view.py -s <path to COLMAP or NeRF Synthetic dataset> -m <path to trained model> -f lseg
+```
+<details>
+<summary><span style="font-weight: bold;">Important Command Line Arguments for view.py</span></summary>
+
+  #### --source_path / -s
+  Path to the source directory containing a COLMAP or Synthetic NeRF data set.
+  #### --model_path / -m 
+  Path where the trained model should be stored (```output/<random>``` by default).
+  #### --iteration
+  Specifies which of iteration to load.
+  #### -f
+  sam or lseg
+
+</details>
+<br>
 
 ## Render
 1. Render from training and test views:
