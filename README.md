@@ -36,6 +36,21 @@ conda activate feature_3dgs
 
 # Processing your own Scenes
 
+We follow the same dataset logistics for [3D Gaussian Splatting](https://github.com/graphdeco-inria/gaussian-splatting). If you want to work with your own scene, put the images you want to use in a directory ```<location>/input```. 
+```
+<location>
+|---input
+    |---<image 0>
+    |---<image 1>
+    |---...
+```
+For rasterization, the camera models must be either a SIMPLE_PINHOLE or PINHOLE camera. We provide a converter script ```convert.py```, to extract undistorted images and SfM information from input images. Optionally, you can use ImageMagick to resize the undistorted images. This rescaling is similar to MipNeRF360, i.e., it creates images with 1/2, 1/4 and 1/8 the original resolution in corresponding folders. To use them, please first install a recent version of COLMAP (ideally CUDA-powered) and ImageMagick.
+
+If you have COLMAP and ImageMagick on your system path, you can simply run 
+```shell
+python convert.py -s <location> [--resize] #If not resizing, ImageMagick is not needed
+```
+
 Our COLMAP loaders expect the following dataset structure in the source path location:
 
 ```
@@ -51,18 +66,6 @@ Our COLMAP loaders expect the following dataset structure in the source path loc
         |---points3D.bin
 ```
 
-For rasterization, the camera models must be either a SIMPLE_PINHOLE or PINHOLE camera. We provide a converter script ```convert.py```, to extract undistorted images and SfM information from input images. Optionally, you can use ImageMagick to resize the undistorted images. This rescaling is similar to MipNeRF360, i.e., it creates images with 1/2, 1/4 and 1/8 the original resolution in corresponding folders. To use them, please first install a recent version of COLMAP (ideally CUDA-powered) and ImageMagick. Put the images you want to use in a directory ```<location>/input```.
-```
-<location>
-|---input
-    |---<image 0>
-    |---<image 1>
-    |---...
-```
- If you have COLMAP and ImageMagick on your system path, you can simply run 
-```shell
-python convert.py -s <location> [--resize] #If not resizing, ImageMagick is not needed
-```
 Alternatively, you can use the optional parameters ```--colmap_executable``` and ```--magick_executable``` to point to the respective paths. Please note that on Windows, the executable should point to the COLMAP ```.bat``` file that takes care of setting the execution environment. Once done, ```<location>``` will contain the expected COLMAP data set structure with undistorted, resized input images, in addition to your original images and some temporary (distorted) data in the directory ```distorted```.
 
 If you have your own COLMAP dataset without undistortion (e.g., using ```OPENCV``` camera), you can try to just run the last part of the script: Put the images in ```input``` and the COLMAP info in a subdirectory ```distorted```:
@@ -171,23 +174,23 @@ python export_image_embeddings.py --checkpoint checkpoints/sam_vit_h_4b8939.pth 
 
 # Training, Rendering, and Inference: 
 
-## Interactive Viewer
-The Pre-built Viewer for Windows can be found [here](https://drive.google.com/file/d/1DRFrtFUfz27QvQKOWbYXbRS2o2eSgaUT/view?usp=sharing). If you use Ubuntu or you want to check the viewer usage, please refer to [GS Monitor](https://github.com/RongLiu-Leo/Gaussian-Splatting-Monitor).
+## 🔥 New features: Multi-functional Interactive Viewer (optinal)
+We are glad to introduce a brand new Multi-functional Interactive Viewer especially for **semantic feature visualization**. The Pre-built Viewer for Windows can be found [here](https://drive.google.com/file/d/1DRFrtFUfz27QvQKOWbYXbRS2o2eSgaUT/view?usp=sharing). If you use Ubuntu or you want to check the viewer usage, please refer to [GS Monitor](https://github.com/RongLiu-Leo/Gaussian-Splatting-Monitor).
 
 
 https://github.com/RongLiu-Leo/feature-3dgs/assets/102014841/7baf236f-29bc-4de1-9a99-97d528f6e63e
 ### How to use
-Firstly open the viewer, 
+Firstly run the viewer, 
 ```shell
 <path to downloaded/compiled viewer>/bin/SIBR_remoteGaussian_app_rwdi
 ```
 and then
-```shell
-# Monitor the training process
-python train.py -s <path to COLMAP or NeRF Synthetic dataset> -f <sam/lseg>
-# View the trained model
-python view.py -s <path to COLMAP or NeRF Synthetic dataset> -m <path to trained model> -f <sam/lseg>
-```
+
+1. If you want to monitor the training process, run `train.py`, see [Train](##Train) section for more details. 
+
+2. If you want to view the trained model, run `view.py`, see [View the Trained Model](##ViewtheTrainedModel) section for more details.
+
+
 ## Train
 ```
 python train.py -s data/DATASET_NAME -m output/OUTPUT_NAME -f lseg -r 0 --speedup --iterations 7000
@@ -306,6 +309,7 @@ pip install .
 ```
 
 ## View the Trained Model
+After training, you can view your trained model directly while keep the viewer running by:
 ```shell
 python view.py -s <path to COLMAP or NeRF Synthetic dataset> -m <path to trained model> -f lseg
 ```
