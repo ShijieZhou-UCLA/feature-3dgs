@@ -25,6 +25,15 @@ Abstract: *3D scene representations have gained immense popularity in recent yea
 </section>
 
 
+
+# Environment setup
+Our default, provided install method is based on Conda package and environment management:
+```
+conda env create --file environment.yml
+conda activate feature_3dgs
+```
+
+
 # Processing your own Scenes
 
 Our COLMAP loaders expect the following dataset structure in the source path location:
@@ -181,7 +190,7 @@ python view.py -s <path to COLMAP or NeRF Synthetic dataset> -m <path to trained
 ```
 ## Train
 ```
-python train.py -s data/DATASET_NAME -m output/OUTPUT_NAME -f lseg -r 0 --speedup
+python train.py -s data/DATASET_NAME -m output/OUTPUT_NAME -f lseg -r 0 --speedup --iterations 7000
 ```
 <details>
 <summary><span style="font-weight: bold;">Command Line Arguments for train.py</span></summary>
