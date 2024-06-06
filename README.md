@@ -171,7 +171,7 @@ python export_image_embeddings.py --checkpoint checkpoints/sam_vit_h_4b8939.pth 
 
 ## Train
 ```
-python train.py -s data/DATASET_NAME -m output/OUTPUT_NAME -f lseg -r 0 --speedup
+python train.py -s data/DATASET_NAME -m output/OUTPUT_NAME -f lseg -r 0 --speedup --iterations 7000
 ```
 <details>
 <summary><span style="font-weight: bold;">Command Line Arguments for train.py</span></summary>
