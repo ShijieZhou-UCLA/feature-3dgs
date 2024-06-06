@@ -25,6 +25,12 @@ Abstract: *3D scene representations have gained immense popularity in recent yea
 </section>
 
 
+# Environment setup
+Our default, provided install method is based on Conda package and environment management:
+```
+conda env create --file environment.yml
+conda activate feature_3dgs
+```
 
 # Processing your own Scenes
 
