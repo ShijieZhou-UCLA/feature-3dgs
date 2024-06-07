@@ -175,7 +175,7 @@ python export_image_embeddings.py --checkpoint checkpoints/sam_vit_h_4b8939.pth 
 # Training, Rendering, and Inference: 
 
 ## 🔥 New features: Multi-functional Interactive Viewer (optinal)
-We are glad to introduce a brand new Multi-functional Interactive Viewer especially for **semantic feature visualization**. The Pre-built Viewer for Windows can be found [here](https://drive.google.com/file/d/1DRFrtFUfz27QvQKOWbYXbRS2o2eSgaUT/view?usp=sharing). If you use Ubuntu or you want to check the viewer usage, please refer to [GS Monitor](https://github.com/RongLiu-Leo/Gaussian-Splatting-Monitor).
+We are glad to introduce a brand new Multi-functional Interactive Viewer for the visualization of *RGB*, *Depth*, *Edge*, *Normal*, *Curvature*, and especially <span style="color: orange;">***semantic feature***</span>. The Pre-built Viewer for Windows can be found [here](https://drive.google.com/file/d/1DRFrtFUfz27QvQKOWbYXbRS2o2eSgaUT/view?usp=sharing). If you use Ubuntu or you want to check the viewer usage, please refer to [GS Monitor](https://github.com/RongLiu-Leo/Gaussian-Splatting-Monitor).
 
 
 https://github.com/RongLiu-Leo/feature-3dgs/assets/102014841/7baf236f-29bc-4de1-9a99-97d528f6e63e
