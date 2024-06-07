@@ -186,9 +186,9 @@ Firstly run the viewer,
 ```
 and then
 
-1. If you want to monitor the training process, run `train.py`, see [Train](##Train) section for more details. 
+1. If you want to monitor the training process, run `train.py`, see [Train](#Train) section for more details. 
 
-2. If you want to view the trained model, run `view.py`, see [View the Trained Model](##ViewtheTrainedModel) section for more details.
+2. If you want to view the trained model, run `view.py`, see [View the Trained Model](#ViewtheTrainedModel) section for more details.
 
 
 ## Train
