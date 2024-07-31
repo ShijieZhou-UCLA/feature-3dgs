@@ -28,7 +28,7 @@ def loadCam(args, id, cam_info, resolution_scale):
         resolution = gt_semantic_feature.shape[2], gt_semantic_feature.shape[1]    
     # customize resolution
     elif args.resolution == -2:
-        resolution = 800, 450
+        resolution = 480, 320 #800, 450
 
     else:  # should be a type that converts to float
         if args.resolution == -1:

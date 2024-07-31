@@ -114,7 +114,7 @@ def render_set(model_path, name, iteration, views, gaussians, pipeline, backgrou
         if speedup:
             gt_feature_map = views[0].semantic_feature.cuda()
             feature_out_dim = gt_feature_map.shape[0]
-            feature_in_dim = int(feature_out_dim/2)
+            feature_in_dim = int(feature_out_dim/4)
             cnn_decoder = CNN_decoder(feature_in_dim, feature_out_dim)
             cnn_decoder.load_state_dict(torch.load(decoder_ckpt_path))
         
@@ -258,7 +258,7 @@ def render_novel_views(model_path, name, iteration, views, gaussians, pipeline, 
         if speedup:
             gt_feature_map = views[0].semantic_feature.cuda()
             feature_out_dim = gt_feature_map.shape[0]
-            feature_in_dim = int(feature_out_dim/2)
+            feature_in_dim = int(feature_out_dim/4)
             cnn_decoder = CNN_decoder(feature_in_dim, feature_out_dim)
             cnn_decoder.load_state_dict(torch.load(decoder_ckpt_path))
         

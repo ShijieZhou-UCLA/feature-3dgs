@@ -1,7 +1,6 @@
 extlibs/
 build/
 install/
-src/projects/*
 cmake-gui.exe.stackdump
 __pycache__/
 

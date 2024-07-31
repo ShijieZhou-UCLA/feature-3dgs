@@ -46,9 +46,9 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
     feature_out_dim = gt_feature_map.shape[0]
 
     
-    # speed up for SAM
+    # speed up
     if dataset.speedup:
-        feature_in_dim = int(feature_out_dim/2)
+        feature_in_dim = int(feature_out_dim/4)
         cnn_decoder = CNN_decoder(feature_in_dim, feature_out_dim)
         cnn_decoder_optimizer = torch.optim.Adam(cnn_decoder.parameters(), lr=0.0001)
 

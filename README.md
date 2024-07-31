@@ -28,11 +28,32 @@ Abstract: *3D scene representations have gained immense popularity in recent yea
 
 # Environment setup
 Our default, provided install method is based on Conda package and environment management:
-```
+<!-- ```
 conda env create --file environment.yml
 conda activate feature_3dgs
+``` -->
+
+```shell
+conda create --name feature_3dgs python=3.8
+conda activate feature_3dgs
+```
+PyTorch (Please check your CUDA version, we used 11.8)
+```shell
+pip install torch==2.0.1+cu118 torchvision==0.15.2+cu118 --index-url https://download.pytorch.org/whl/cu118
 ```
 
+Required packages
+```shell
+pip install -r requirements.txt
+```
+
+Submodules
+
+<span style="color: orange;">***New***</span>: Our Parallel N-dimensional Gaussian Rasterizer now supports RGB, arbitrary N-dimensional Feature, and Depth rendering.
+```shell
+pip install submodules/diff-gaussian-rasterization-feature # Rasterizer for RGB, n-dim feature, depth
+pip install submodules/simple-knn
+```
 
 # Processing your own Scenes
 
@@ -113,18 +134,19 @@ python convert.py -s <location> --skip_matching [--resize] #If not resizing, Ima
 
 ## LSeg encoder
 
-### Installation
+<!-- ### Installation
 Setup LSeg
 ```
 cd encoders/lseg_encoder
 pip install -r requirements.txt
 pip install git+https://github.com/zhanghang1989/PyTorch-Encoding/
-```
+``` -->
 
-Download the LSeg model file `demo_e200.ckpt` from [the Google drive](https://drive.google.com/file/d/1ayk6NXURI_vIPlym16f_RG3ffxBWHxvb/view?usp=sharing).
+Download the LSeg model file `demo_e200.ckpt` from [the Google drive](https://drive.google.com/file/d/1ayk6NXURI_vIPlym16f_RG3ffxBWHxvb/view?usp=sharing) and place it under the folder: `encoders/lseg_encoder`.
 
 ### Feature embedding
 ```
+cd encoders/lseg_encoder
 python -u encode_images.py --backbone clip_vitl16_384 --weights demo_e200.ckpt --widehead --no-scaleinv --outdir ../../data/DATASET_NAME/rgb_feature_langseg --test-rgb-dir ../../data/DATASET_NAME/images --workers 0
 ```
 This may produces large feature map files in `--outdir` (100-200MB per file).
@@ -155,18 +177,19 @@ Click the links below to download the checkpoint for the corresponding model typ
 - `vit_l`: [ViT-L SAM model.](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth)
 - `vit_b`: [ViT-B SAM model.](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth)
 
-And place it at the folder: ```
+And place it under the folder: ```
 encoders/sam_encoder/checkpoints```
 
-The following optional dependencies are necessary for mask post-processing, saving masks in COCO format.
+<!-- The following optional dependencies are necessary for mask post-processing, saving masks in COCO format.
 
 ```
 pip install opencv-python pycocotools matplotlib onnxruntime onnx
-```
+``` -->
 
 ### Feature embedding
 Run the following to export the image embeddings of an input image or directory of images.
 ```
+cd encoders/sam_encoder
 python export_image_embeddings.py --checkpoint checkpoints/sam_vit_h_4b8939.pth --model-type vit_h --input ../../data/DATASET_NAME/images  --output ../../data/OUTPUT_NAME/sam_embeddings
 ```
 
@@ -175,25 +198,40 @@ python export_image_embeddings.py --checkpoint checkpoints/sam_vit_h_4b8939.pth 
 # Training, Rendering, and Inference: 
 
 ## 🔥 New features: Multi-functional Interactive Viewer (optional)
-We are glad to introduce a brand new Multi-functional Interactive Viewer for the visualization of *RGB*, *Depth*, *Edge*, *Normal*, *Curvature*, and especially <span style="color: orange;">***semantic feature***</span>. The Pre-built Viewer for Windows can be found [here](https://drive.google.com/file/d/1DRFrtFUfz27QvQKOWbYXbRS2o2eSgaUT/view?usp=sharing). If you use Ubuntu or you want to check the viewer usage, please refer to [GS Monitor](https://github.com/RongLiu-Leo/Gaussian-Splatting-Monitor).
+We are glad to introduce a brand new Multi-functional Interactive Viewer for the visualization of *RGB*, *Depth*, *Edge*, *Normal*, *Curvature*, and especially <span style="color: orange;">***semantic feature***</span>. The Pre-built Viewer for Windows is placed in `viewer_windows` and can also be downloaded [here](https://drive.google.com/file/d/1DRFrtFUfz27QvQKOWbYXbRS2o2eSgaUT/view?usp=sharing). If your OS is Ubuntu 22.04, you need to compile the viewer locally:
+```shell
+# Dependencies
+sudo apt install -y libglew-dev libassimp-dev libboost-all-dev libgtk-3-dev libopencv-dev libglfw3-dev libavdevice-dev libavcodec-dev libeigen3-dev libxxf86vm-dev libembree-dev
+# Project setup
+cd SIBR_viewers
+cmake -Bbuild . -DCMAKE_BUILD_TYPE=Release # add -G Ninja to build faster
+cmake --build build -j24 --target install
+```
+
+You can visit [GS Monitor](https://github.com/RongLiu-Leo/Gaussian-Splatting-Monitor) for more details.
 
 
 https://github.com/RongLiu-Leo/feature-3dgs/assets/102014841/7baf236f-29bc-4de1-9a99-97d528f6e63e
 ### How to use
 Firstly run the viewer, 
 ```shell
-<path to downloaded/compiled viewer>/bin/SIBR_remoteGaussian_app_rwdi
+./viewer_windows/bin/SIBR_remoteGaussian_app_rwdi # Windows
+```
+or
+
+```shell
+./<SIBR install dir>/bin/SIBR_remoteGaussian_app # Ubuntu 22.04
 ```
 and then
 
 1. If you want to monitor the training process, run `train.py`, see [Train](#train) section for more details. 
 
-2. If you want to view the trained model, run `view.py`, see [View the Trained Model](#view-the-trained-model) section for more details.
+2. If you prefer faster training, run `view.py` to interact with your trained model once training is complete. See [View the Trained Model](#view-the-trained-model) section for more details.
 
 
 ## Train
 ```
-python train.py -s data/DATASET_NAME -m output/OUTPUT_NAME -f lseg -r 0 --speedup --iterations 7000
+python train.py -s data/DATASET_NAME -m output/OUTPUT_NAME -f lseg --speedup --iterations 7000
 ```
 <details>
 <summary><span style="font-weight: bold;">Command Line Arguments for train.py</span></summary>
@@ -276,7 +314,7 @@ python train.py -s data/DATASET_NAME -m output/OUTPUT_NAME -f lseg -r 0 --speedu
 </details>
 
 ### Gaussian Rasterization with High-dimensional Features
-You can customize `NUM_SEMANTIC_CHANNELS` in `submodules/diff-gaussian-rasterization/cuda_rasterizer/config.h` for any number of feature dimension that you want: 
+You can customize `NUM_SEMANTIC_CHANNELS` in `submodules/diff-gaussian-rasterization-feature/cuda_rasterizer/config.h` for any number of feature dimension that you want: 
 
 - Customize `NUM_SEMANTIC_CHANNELS` in `config.h`.
 
@@ -284,28 +322,31 @@ If you would like to use the optional CNN speed-up module, do the following acco
 
 - Customize `NUMBER` in `semantic_feature_size/NUMBER` in `scene/gaussian_model.py` in line 142.
 - Customize `NUMBER` in `feature_out_dim/NUMBER` in `train.py` in line 51.
-- Customize `NUMBER` in `feature_out_dim/NUMBER` in `render.py` in line 116 and 246. 
+- Customize `NUMBER` in `feature_out_dim/NUMBER` in `render.py` in line 117 and 261. 
 
-where `feature_out_dim` / `NUMBER` = `NUM_SEMANTIC_CHANNELS`. The `feature_out_dim` matches the ground truth foundation model dimensions, 512 for LSeg and 256 for SAM. The default `NUMBER = 2`. For your reference, here are 4 configurations of runing `train.py`:
+where `feature_out_dim` / `NUMBER` = `NUM_SEMANTIC_CHANNELS`. The `feature_out_dim` matches the ground truth foundation model dimensions, 512 for LSeg and 256 for SAM. The default `NUMBER = 4`. For your reference, here are 4 configurations of runing `train.py`:
 
 For langage-guided editing:
 
-`-f lseg` with `NUM_SEMANTIC_CHANNELS` `512`*.
+`-f lseg` with `NUM_SEMANTIC_CHANNELS` `512`* (No speed-up for this task).
 
 For segmentation tasks:
 
-`-f lseg --speedup` with `NUM_SEMANTIC_CHANNELS` `256`, `NUMBER = 2`*.
+`-f lseg --speedup` with `NUM_SEMANTIC_CHANNELS` `128`, `NUMBER = 4`*.
 
 `-f sam` with `NUM_SEMANTIC_CHANNELS` `256`.
 
-`-f sam --speedup` with `NUM_SEMANTIC_CHANNELS` `128`, `NUMBER = 2`*.
+`-f sam --speedup` with `NUM_SEMANTIC_CHANNELS` `64`, `NUMBER = 4`*.
 
 *: setup used in our experiments
 #### Notice:
-Make sure to compile everytime after modifying any CUDA code
-```
+Everytime after modifying any CUDA code, make sure to delete `submodules/diff-gaussian-rasterization-feature/build` and compile again: 
+<!-- ```
 cd submodules/diff-gaussian-rasterization
 pip install .
+``` -->
+```
+pip install submodules/diff-gaussian-rasterization-feature
 ```
 
 ## View the Trained Model
