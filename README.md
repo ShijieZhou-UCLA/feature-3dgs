@@ -438,7 +438,7 @@ python -u segmentation.py --data ../../output/DATASET_NAME/ --iteration 6000
 python -u segmentation.py --data ../../output/DATASET_NAME/ --iteration 6000 --label_src car,building,tree
 ```
 
-Calculate segmentaion metric:
+Calculate segmentaion metric (for Replica dataset experiment, our preprocessed data can be downloaded [here](https://drive.google.com/file/d/1sC2ZJUBRHKeWXXVUj7rIBEM-xaibvGw7/view?usp=sharing)):
 ```shell
 cd encoders/lseg_encoder
 python -u segmentation_metric.py --backbone clip_vitl16_384 --weights demo_e200.ckpt --widehead --no-scaleinv --student-feature-dir ../../output/OUTPUT_NAME/test/ours_30000/saved_feature/ --teacher-feature-dir ../../data/DATASET_NAME/rgb_feature_langseg/ --test-rgb-dir ../../output/OUTPUT_NAME/test/ours_30000/renders/ --workers 0 --eval-mode test
