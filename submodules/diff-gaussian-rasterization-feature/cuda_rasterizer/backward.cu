@@ -473,12 +473,15 @@ renderCUDA(
 
 
 	if (inside)
+	{
 		for (int i = 0; i < C; i++)
 			dL_dpixel[i] = dL_dpixels[i * H * W + pix_id];
-			dL_depth = dL_depths[pix_id];
+		
+		dL_depth = dL_depths[pix_id];
+
 		for (int i = 0; i < NUM_SEMANTIC_CHANNELS; i++) 
 			dL_dfeaturepixel[i] = dL_dfeaturepixels[i * H * W + pix_id];
-
+	}
 
 	float last_alpha = 0;
 	float last_color[C] = { 0 };
