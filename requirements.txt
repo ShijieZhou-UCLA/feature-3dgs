@@ -1,6 +1,6 @@
 setuptools
 plyfile
-pytorch-lightning
+pytorch-lightning==2.4.0
 opencv-python
 imageio
 ftfy

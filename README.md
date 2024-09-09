@@ -39,7 +39,7 @@ conda activate feature_3dgs
 ```
 PyTorch (Please check your CUDA version, we used 11.8)
 ```shell
-pip install torch==2.0.1+cu118 torchvision==0.15.2+cu118 --index-url https://download.pytorch.org/whl/cu118
+pip install torch==2.4.0 torchvision==0.19.0 torchaudio==2.4.0 --index-url https://download.pytorch.org/whl/cu118
 ```
 
 Required packages
