@@ -391,7 +391,7 @@ renderCUDA(
 		out_depth[pix_id] = D;
 		// feature
 		for (int ch = 0; ch < NUM_SEMANTIC_CHANNELS; ch++)                 
-			out_feature_map[ch * H * W + pix_id] = SF[ch] + T * bg_color[ch];
+			out_feature_map[ch * H * W + pix_id] = SF[ch];
 	}
 }
 
